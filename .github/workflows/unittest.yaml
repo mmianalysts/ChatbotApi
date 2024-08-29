@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # docs https://docs.github.com/zh/actions/writing-workflows/workflow-syntax-for-github-actions
 
-name: Workflow
+name: 单元测试
 
 on:
   push:
