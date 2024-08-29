@@ -45,7 +45,10 @@ def hash_sha256(content: str):
 
 
 def sign_header(
-    method: Literal["POST"], path: str, query: Optional[dict] = None, data: Optional[dict] = None
+    method: Literal["POST"],
+    path: str,
+    query: Optional[dict] = None,
+    data: Optional[dict] = None,
 ) -> dict[str, str]:
     now = datetime.now(timezone.utc)
     x_date = now.strftime("%Y%m%dT%H%M%SZ")

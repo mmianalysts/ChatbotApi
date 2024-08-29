@@ -40,7 +40,10 @@ class BaseCompletionReq(BaseModel):
     model: str = Body(description="模型名称, 可用模型取决于选择的服务商")
     service: ServiceProvider = Body(default="openai", description="LLM服务供应商")
     api_key: str = Body(
-        default="", alias="OPENAI_API_KEY", deprecated=True, description="OpenAI API Key"
+        default="",
+        alias="OPENAI_API_KEY",
+        deprecated=True,
+        description="OpenAI API Key",
     )
     temperature: float = Body(0, description="温度参数，默认为0", ge=0, le=1)
 
