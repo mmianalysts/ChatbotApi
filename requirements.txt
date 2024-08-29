@@ -1,0 +1,6 @@
+anthropic
+httpx
+fastapi
+openai
+tiktoken
+uvicorn[standard]
