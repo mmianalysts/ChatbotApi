@@ -13,15 +13,15 @@ log_dir = Path("/data/var/log")
 logconfig_dict = {
     "version": 1,
     "disable_existing_loggers": False,
-    "root": {"level": "INFO", "handlers": ["default"]},
+    "root": {"level": "INFO"},
     "formatters": {
         "default": {
             "()": "uvicorn.logging.DefaultFormatter",
             "fmt": "%(asctime)s - %(levelprefix)s %(message)s",
         },
         "access": {
-            "()": "uvicorn.logging.AccessFormatter",
-            "fmt": "%(asctime)s - %(levelprefix)s %(client_addr)s - "
+            "()": "src.log_formatter.CustomFormatter",
+            "fmt": "%(asctime)s - %(elapsed).2f - %(levelprefix)s %(client_addr)s - "
             '"%(request_line)s" %(status_code)s',
         },
         "chatbot": {
@@ -53,13 +53,8 @@ logconfig_dict = {
         },
     },
     "loggers": {
-        "uvicorn": {"handlers": ["default"], "level": "DEBUG", "propagate": False},
-        "uvicorn.error": {"level": "INFO"},
-        "uvicorn.access": {
-            "handlers": ["access"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
+        "gunicorn.error": {"level": "INFO", "handlers": ["default"], "propagate": False},
+        "gunicorn.access": {"handlers": ["access"], "level": "DEBUG", "propagate": False},
         "chatbot": {"handlers": ["chatbot"], "level": "INFO", "propagate": False},
     },
 }
