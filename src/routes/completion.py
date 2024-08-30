@@ -93,7 +93,7 @@ async def gpt_openai_fast(body: BatchCompletionReq):
             async with lock:
                 return "ok", await chatbot_openai(prompt, model=body.model, service=body.service)
         except APIError as e:
-            print("In fastapi_ws.py, bot_helper_http error occurred")
+            logger.error("Batch completion error: %s", e)
             return "error", e.message
 
     results = await tqdm.gather(*[get_result(prompt) for prompt in body.prompts])
