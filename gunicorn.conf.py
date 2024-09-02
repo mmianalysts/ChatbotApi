@@ -16,16 +16,16 @@ logconfig_dict = {
     "root": {"level": "INFO"},
     "formatters": {
         "default": {
-            "()": "uvicorn.logging.DefaultFormatter",
+            "()": "src.log_formatter.JsonFormatter",
             "fmt": "%(asctime)s - %(levelprefix)s %(message)s",
         },
         "access": {
-            "()": "src.log_formatter.CustomFormatter",
+            "()": "src.log_formatter.JsonFormatter",
             "fmt": "%(asctime)s - %(elapsed).2f - %(levelprefix)s %(client_addr)s - "
             '"%(request_line)s" %(status_code)s',
         },
         "chatbot": {
-            "()": "uvicorn.logging.DefaultFormatter",
+            "()": "src.log_formatter.JsonFormatter",
             "fmt": "%(asctime)s [%(process)d] %(levelprefix)s %(module)s:%(lineno)d - %(message)s",
         },
     },
