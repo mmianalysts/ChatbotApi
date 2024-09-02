@@ -74,7 +74,10 @@ async def gpt_openai(body: CompletionWithImgReq):
     data["reply"] = await chatbot_openai(
         body.text, body.model, body.service, pic=body.pic, temperature=body.temperature
     )
-    logger.info("Input: %s\nReply: %s", data["text"], data["reply"])
+    logger.info(
+        "Model: {model} - Service: {service}\nPrompt: {prompt}\nReply: {reply}",
+        {"model": body.model, "service": body.service, "prompt": body.text, "reply": data["reply"]},
+    )
     return data
 
 

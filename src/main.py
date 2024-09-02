@@ -54,13 +54,15 @@ async def add_process_time_header(request: Request, call_next):
         client = "{}:{}".format(*request.scope["client"])
     path = get_path_with_query_string(request.scope)  # type: ignore
     access_logger.info(
-        '%s - %s - "%s %s HTTP/%s" %d',
-        duration,
-        client,
-        request.method,
-        path,
-        request.scope["http_version"],
-        response.status_code,
+        '{duration:.2f} - {client} - "{method} {path} HTTP/{http_version}" {status_code}',
+        {
+            "duration": duration,
+            "client": client,
+            "method": request.method,
+            "path": path,
+            "http_version": request.scope["http_version"],
+            "status_code": response.status_code,
+        },
     )
     return response
 
