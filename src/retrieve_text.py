@@ -16,7 +16,9 @@ async def chatbot_gpt4(text):
 
 async def chatbot_gpt4_turbo(text):
     response = await CLIENTS["openai"].chat.completions.create(
-        model="gpt-4-1106-preview", messages=[{"role": "user", "content": text}], timeout=6000
+        model="gpt-4-1106-preview",
+        messages=[{"role": "user", "content": text}],
+        timeout=6000,
     )
     contents = response.choices[0].message.content
     assert contents, response
@@ -36,7 +38,10 @@ async def chatbot_openai(
     if pic:
         if not pic.startswith("http"):
             pic = "data:image/jpeg;base64," + pic
-        content = [{"type": "text", "text": text}, {"type": "image_url", "image_url": {"url": pic}}]
+        content = [
+            {"type": "text", "text": text},
+            {"type": "image_url", "image_url": {"url": pic}},
+        ]
     messages = [{"role": "user", "content": content}]
 
     response = await client.chat.completions.create(

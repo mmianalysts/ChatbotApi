@@ -13,7 +13,8 @@ proxy_client = AsyncClient(
 )
 OPENAI_CLIENT = AsyncOpenAI(http_client=proxy_client)
 AZURE_CLIENT = AsyncAzureOpenAI(
-    azure_endpoint="https://azure-agent1.openai.azure.com/", api_version="2023-07-01-preview"
+    azure_endpoint="https://azure-agent1.openai.azure.com/",
+    api_version="2023-07-01-preview",
 )
 
 DEEP_SEEK_API_KEY = os.getenv("DPSK_API_KEY")

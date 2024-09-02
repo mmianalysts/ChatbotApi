@@ -40,7 +40,10 @@ class BaseCompletionReq(BaseModel):
     model: str = Body(description="模型名称, 可用模型取决于选择的服务商")
     service: ServiceProvider = Body(default="openai", description="LLM服务供应商")
     api_key: str = Body(
-        default="", alias="OPENAI_API_KEY", deprecated=True, description="OpenAI API Key"
+        default="",
+        alias="OPENAI_API_KEY",
+        deprecated=True,
+        description="OpenAI API Key",
     )
     temperature: float = Body(0, description="温度参数，默认为0", ge=0, le=1)
 
@@ -71,7 +74,7 @@ async def gpt_openai(body: CompletionWithImgReq):
     data["reply"] = await chatbot_openai(
         body.text, body.model, body.service, pic=body.pic, temperature=body.temperature
     )
-    logger.info("\nInput: %s\nReply: %s", data["text"], data["reply"])
+    logger.info("Input: %s\nReply: %s", data["text"], data["reply"])
     return data
 
 
@@ -90,7 +93,7 @@ async def gpt_openai_fast(body: BatchCompletionReq):
             async with lock:
                 return "ok", await chatbot_openai(prompt, model=body.model, service=body.service)
         except APIError as e:
-            print("In fastapi_ws.py, bot_helper_http error occurred")
+            logger.error("Batch completion error: %s", e)
             return "error", e.message
 
     results = await tqdm.gather(*[get_result(prompt) for prompt in body.prompts])

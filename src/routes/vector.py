@@ -27,7 +27,6 @@ class VectorReq(BaseModel):
 @router.post("/vec", deprecated=True)
 @router.post("/vec_openai", description="文本转向量")
 async def text_vector(body: VectorReq):
-    print("In fastapi_helper: bot_helper_http")
     data = body.model_dump()
     data["reply"] = await vec(body.text, body.service, body.model, body.dimensions)
     data["status"] = "ok"

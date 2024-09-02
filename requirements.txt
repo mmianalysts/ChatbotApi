@@ -1,6 +1,7 @@
 anthropic
 httpx
 fastapi
+gunicorn
 openai
 tiktoken
 uvicorn[standard]
