@@ -54,7 +54,7 @@ logconfig_dict = {
     },
     "loggers": {
         "gunicorn.error": {"level": "INFO", "handlers": ["default"], "propagate": False},
-        "gunicorn.access": {"handlers": ["access"], "level": "DEBUG", "propagate": False},
         "chatbot": {"handlers": ["chatbot"], "level": "INFO", "propagate": False},
+        "chatbot.access": {"handlers": ["access"], "level": "DEBUG", "propagate": False},
     },
 }

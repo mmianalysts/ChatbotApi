@@ -1,6 +1,5 @@
 import json
 import logging
-import time
 from copy import copy
 
 
@@ -13,14 +12,12 @@ class JsonFormatter(logging.Formatter):
         record_dict = copy(record.__dict__)
         args = record_dict.pop("args", [])
         if args:
-            if record_dict["msg"] == ("Input: %s\nReply: %s") and len(args) == 2:
+            if record_dict["msg"] == "Input: %s\nReply: %s" and len(args) == 2:
                 record_dict.update(zip(["prompt", "reply"], args))
-            if len(args) == 5:
-                record_dict.update(
-                    zip(["client_addr", "method", "full_path", "http_version", "status_code"], args)
-                )
+            elif len(args) == 6:
+                name = "elapsed", "client", "method", "path", "http_version", "status_code"
+                record_dict.update(zip(name, args))
             record_dict["msg"] = record.getMessage()
-        record_dict["duration"] = (time.time() - record_dict["created"]) * 1000
         if self.usesTime():
             record_dict["asctime"] = self.formatTime(record, self.datefmt)
         if record_dict["exc_text"]:

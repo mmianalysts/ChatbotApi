@@ -1,5 +1,6 @@
 # coding:utf-8
 import logging
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -7,15 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from uvicorn.protocols.utils import get_path_with_query_string
 
 from src.routes.completion import router as completion_router
 from src.routes.deprecated import router as deprecated_router
 from src.routes.models import router as models_router
 from src.routes.vector import router as vec_router
 
-# 日志配置
-logger = logging.getLogger("chatbot")
-logger.info("backend starts...")
+access_logger = logging.getLogger("chatbot.access")
 
 doc_dir = Path(__file__).parent.parent / "docs"
 api_doc = doc_dir / "api_docs.md"
@@ -42,6 +42,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration = (time.perf_counter() - start) * 1000
+    client = ""
+    if request.scope.get("client"):
+        client = "{}:{}".format(*request.scope["client"])
+    path = get_path_with_query_string(request.scope)  # type: ignore
+    access_logger.info(
+        '%s - %s - "%s %s HTTP/%s" %d',
+        duration,
+        client,
+        request.method,
+        path,
+        request.scope["http_version"],
+        response.status_code,
+    )
+    return response
+
 
 app.mount("/static", StaticFiles(directory=doc_dir / "static"), name="static")
 
