@@ -11,12 +11,10 @@ class JsonFormatter(logging.Formatter):
 
         record_dict = copy(record.__dict__)
         args = record_dict.pop("args", [])
-        if args:
-            if record_dict["msg"] == "Input: %s\nReply: %s" and len(args) == 2:
-                record_dict.update(zip(["prompt", "reply"], args))
-            elif len(args) == 6:
-                name = "elapsed", "client", "method", "path", "http_version", "status_code"
-                record_dict.update(zip(name, args))
+        if args and isinstance(args, dict):
+            record_dict.update(args)
+            record_dict["msg"] = record.msg.format(**args)
+        else:
             record_dict["msg"] = record.getMessage()
         if self.usesTime():
             record_dict["asctime"] = self.formatTime(record, self.datefmt)
