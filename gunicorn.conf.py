@@ -17,16 +17,19 @@ logconfig_dict = {
     "formatters": {
         "default": {
             "()": "src.log_formatter.JsonFormatter",
-            "fmt": "%(asctime)s - %(levelprefix)s %(message)s",
+            "fmt": "{asctime} - {levelprefix} {message}",
+            "style": "{",
         },
         "access": {
             "()": "src.log_formatter.JsonFormatter",
-            "fmt": "%(asctime)s - %(elapsed).2f - %(levelprefix)s %(client_addr)s - "
-            '"%(request_line)s" %(status_code)s',
+            "fmt": "{asctime} - {elapsed} - {levelprefix} {client_addr} - "
+            '"{request_line}" {status_code}',
+            "style": "{",
         },
         "chatbot": {
             "()": "src.log_formatter.JsonFormatter",
-            "fmt": "%(asctime)s [%(process)d] %(levelprefix)s %(module)s:%(lineno)d - %(message)s",
+            "fmt": "{asctime} [{process}] {levelprefix} {module}:{lineno} - {message}",
+            "style": "{",
         },
     },
     "handlers": {

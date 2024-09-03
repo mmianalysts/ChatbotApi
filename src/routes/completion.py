@@ -76,7 +76,12 @@ async def gpt_openai(body: CompletionWithImgReq):
     )
     logger.info(
         "Model: {model} - Service: {service}\nPrompt: {prompt}\nReply: {reply}",
-        {"model": body.model, "service": body.service, "prompt": body.text, "reply": data["reply"]},
+        extra={
+            "model": body.model,
+            "service": body.service,
+            "prompt": body.text,
+            "reply": data["reply"],
+        },
     )
     return data
 
@@ -96,7 +101,7 @@ async def gpt_openai_fast(body: BatchCompletionReq):
             async with lock:
                 return "ok", await chatbot_openai(prompt, model=body.model, service=body.service)
         except APIError as e:
-            logger.error("Batch completion error: %s", e)
+            logger.error(f"Batch completion error: {e}")
             return "error", e.message
 
     results = await tqdm.gather(*[get_result(prompt) for prompt in body.prompts])
