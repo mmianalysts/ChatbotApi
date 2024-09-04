@@ -2,6 +2,7 @@ from typing import Optional, Union
 
 from src.clients import CLIENTS
 from src.schema import ServiceProvider
+from src.utils import log_completion_duration
 
 
 async def chatbot_gpt4(text):
@@ -26,6 +27,7 @@ async def chatbot_gpt4_turbo(text):
     return contents
 
 
+@log_completion_duration
 async def chatbot_openai(
     text: str,
     model: str,
