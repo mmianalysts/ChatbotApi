@@ -6,7 +6,8 @@ from uvicorn.workers import UvicornWorker
 
 bind = ":".join(("0.0.0.0", os.getenv("PORT", "8000")))
 workers = int(os.getenv("WORKERS", 4))
-max_requests = 500000
+max_requests = 50_0000
+max_requests_jitter = 1_0000
 worker_class = UvicornWorker
 
 log_dir = Path("/data/var/log")
