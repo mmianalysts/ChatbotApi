@@ -89,6 +89,11 @@ def custom_swagger_ui():
     )
 
 
+@app.post("/ping")
+def ping():
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
     import uvicorn
 

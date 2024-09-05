@@ -12,6 +12,11 @@ class JsonFormatter(logging.Formatter):
         record_dict = copy(record.__dict__)
         record_dict.pop("args", None)
         record_dict["msg"] = record.msg.format(**record_dict)
+        if record.args:
+            try:
+                record_dict["msg"] = record_dict["msg"] % record.args
+            except TypeError:
+                pass
         if self.usesTime():
             record_dict["asctime"] = self.formatTime(record, self.datefmt)
         if record_dict["exc_text"]:
