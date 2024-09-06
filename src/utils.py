@@ -12,7 +12,7 @@ def log_completion_duration(func):
     async def wrapper(*args, **kwargs):
         start = time.time()
         reply = await func(*args, **kwargs)
-        duration = time.time() - start
+        duration = (time.time() - start) * 1000
         extra = {"duration": duration, "reply": reply}
         extra.update(zip(record_params, args))
         extra.update({k: v for k, v in kwargs.items() if k in record_params[len(args) :]})

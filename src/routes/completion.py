@@ -71,7 +71,7 @@ class CompletionWithImgReq(CompletionReq):
 @router.post("/gpt_openai", description="基础问答功能，可以输入图片")
 async def gpt_openai(body: CompletionWithImgReq):
     data = body.model_dump() | {"status": "ok"}
-    data["reply"] = await chatbot_openai(
+    data["reply"], data["usage"] = await chatbot_openai(
         body.text, body.model, body.service, pic=body.pic, temperature=body.temperature
     )
     return data

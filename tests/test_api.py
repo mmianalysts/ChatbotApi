@@ -17,6 +17,7 @@ class FakeCompletion:
             content = "Fake completion response"
 
     choices = [Choice]
+    usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
 
 class FakeEmbedding:
@@ -47,7 +48,9 @@ class TestChatBot(unittest.TestCase):
             with self.subTest(**param):
                 response = client.post(api, json=data | param)
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.json()["reply"], FakeCompletion.Choice.message.content)
+                data = response.json()
+                self.assertEqual(data["reply"], FakeCompletion.Choice.message.content)
+                self.assertEqual(data["usage"], FakeCompletion.usage)
 
     @patch.object(AsyncEmbeddings, "create", new_callable=AsyncMock)
     def test_api(self, mock_embedding_create, mock_openai_create, mock_claude_create):
