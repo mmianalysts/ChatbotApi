@@ -51,7 +51,7 @@ async def chatbot_openai(
     )
     contents = response.choices[0].message.content
     assert contents, response
-    return contents
+    return contents, response.usage
 
 
 async def chatbot_openai_hispreadnlp(text, model):
