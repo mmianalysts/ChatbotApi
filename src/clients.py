@@ -36,6 +36,10 @@ MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY")
 assert MINIMAX_API_KEY is not None, "Please set the environment variable MINI_MAX_API_KEY"
 MINIMAX_CLIENT = AsyncOpenAI(api_key=MINIMAX_API_KEY, base_url="https://api.minimax.chat/v1")
 
+MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY")
+assert MOONSHOT_API_KEY is not None, "Please set the environment variable MOONSHOT_API_KEY"
+MOONSHOT_CLIENT = AsyncOpenAI(api_key=MOONSHOT_API_KEY, base_url="https://api.moonshot.cn/v1")
+
 CLIENTS: dict[ServiceProvider, AsyncOpenAI] = {
     "openai": OPENAI_CLIENT,
     "azure": AZURE_CLIENT,
@@ -43,4 +47,5 @@ CLIENTS: dict[ServiceProvider, AsyncOpenAI] = {
     "doubao": DOUBAO_CLIENT,
     "claude": CLAUDE_CLIENT,
     "minimax": MINIMAX_CLIENT,
+    "moonshot": MOONSHOT_CLIENT,
 }
