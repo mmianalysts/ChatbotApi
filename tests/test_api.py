@@ -43,6 +43,7 @@ class TestChatBot(unittest.TestCase):
             ("ep-20240604102539-lz8dk", "doubao"),
             ("claude-3-haiku-20240307", "claude"),
             ("abab6.5s-chat", "minimax"),
+            ("moonshot-v1-8k", "moonshot"),
         ):
             param = {"model": model, "service": service}
             with self.subTest(**param):
