@@ -44,7 +44,7 @@ ModelList: dict[ServiceProvider, list[ModelInfo]] = {
 
 @router.post("/list", summary="获取各服务商可用的模型列表", response_model=list[ModelInfo])
 async def model_list(service: ServiceProvider = Body(embed=True)):
-    if service == "openai":
+    if service in ("openai", "moonshot"):
         return (await CLIENTS[service].models.list()).data
     elif service == "doubao":
         models = await ark_model_list()
