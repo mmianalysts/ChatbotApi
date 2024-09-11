@@ -27,13 +27,10 @@ class FakeEmbedding:
     data = [embedding]
 
 
-@patch.object(AsyncCompletions, "create", new_callable=AsyncMock)
-@patch.object(AsyncClaude, "create", new_callable=AsyncMock)
+@patch.object(AsyncCompletions, "create", new_callable=AsyncMock, return_value=FakeCompletion)
+@patch.object(AsyncClaude, "create", new_callable=AsyncMock, return_value=FakeCompletion)
 class TestChatBot(unittest.TestCase):
-    def test_service(self, mock_openai_create, mock_claude_create):
-        mock_openai_create.return_value = FakeCompletion
-        mock_claude_create.return_value = FakeCompletion
-
+    def test_service(self, _mock_claude_create, _mock_openai_create):
         api = "/gpt_openai"
         data = {"text": "How are you"}
         for model, service in (
@@ -53,11 +50,22 @@ class TestChatBot(unittest.TestCase):
                 self.assertEqual(data["reply"], FakeCompletion.Choice.message.content)
                 self.assertEqual(data["usage"], FakeCompletion.usage)
 
-    @patch.object(AsyncEmbeddings, "create", new_callable=AsyncMock)
-    def test_api(self, mock_embedding_create, mock_openai_create, mock_claude_create):
-        mock_embedding_create.return_value = FakeEmbedding
-        mock_openai_create.return_value = FakeCompletion
-        mock_claude_create.return_value = FakeCompletion
+    def test_system_message(self, _mock_claude_create, mock_openai_create: AsyncMock):
+        api = "/gpt_openai"
+        data = {"text": "How are you", "system": "You are a chatbot", "model": "gpt-3.5-turbo"}
+        response = client.post(api, json=data)
+        self.assertEqual(response.status_code, 200)
+        mock_openai_create.assert_called_with(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a chatbot"},
+                {"role": "user", "content": "How are you"},
+            ],
+            temperature=0,
+        )
+
+    @patch.object(AsyncEmbeddings, "create", new_callable=AsyncMock, return_value=FakeEmbedding)
+    def test_api(self, mock_embedding_create, mock_claude_create, mock_openai_create):
 
         embedding_resp = FakeEmbedding.embedding.embedding
         completion_resp = FakeCompletion.Choice.message.content

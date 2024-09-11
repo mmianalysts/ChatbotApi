@@ -58,21 +58,28 @@ class BaseCompletionReq(BaseModel):
 
 class CompletionReq(BaseCompletionReq):
     text: str = Body(description="输入的文本")
+    system: str = Body(default="", description="系统提示词，默认为空")
 
 
 class BatchCompletionReq(BaseCompletionReq):
     prompts: list[str] = Body(description="输入的文本列表")
+    system: str = Body(default="", description="系统提示词，默认为空")
 
 
 class CompletionWithImgReq(CompletionReq):
-    pic: Optional[str] = Body(default=None, description="图片链接或base64编码")
+    pic: Optional[str] = Body(default=None, description="图片链接或base64编码字符串")
 
 
 @router.post("/gpt_openai", description="基础问答功能，可以输入图片")
 async def gpt_openai(body: CompletionWithImgReq):
     data = body.model_dump() | {"status": "ok"}
     data["reply"], data["usage"] = await chatbot_openai(
-        body.text, body.model, body.service, pic=body.pic, temperature=body.temperature
+        body.text,
+        body.model,
+        body.service,
+        system=body.system,
+        pic=body.pic,
+        temperature=body.temperature,
     )
     return data
 
@@ -90,7 +97,9 @@ async def gpt_openai_fast(body: BatchCompletionReq):
     async def get_result(prompt):
         try:
             async with lock:
-                return "ok", await chatbot_openai(prompt, model=body.model, service=body.service)
+                return "ok", await chatbot_openai(
+                    prompt, model=body.model, service=body.service, system=body.system
+                )
         except APIError as e:
             logger.error(f"Batch completion error: {e}")
             return "error", e.message
