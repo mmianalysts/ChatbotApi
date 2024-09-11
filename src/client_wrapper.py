@@ -6,7 +6,7 @@ import time
 
 from anthropic import AsyncAnthropic
 from anthropic.types import ContentBlock, Message, TextBlock
-from openai import AsyncOpenAI
+from openai import NOT_GIVEN, AsyncOpenAI
 from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.completion_usage import CompletionUsage
@@ -33,6 +33,7 @@ class AsyncClaude(AsyncOpenAI):
 
     async def create(self, **kwargs):
         kwargs.setdefault("max_tokens", 4096)
+        kwargs = {k: v for k, v in kwargs.items() if v not in (None, NOT_GIVEN)}
         res: Message = await self.client.messages.create(**kwargs)
         return ChatCompletion(
             id=res.id,

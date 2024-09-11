@@ -4,12 +4,13 @@ from typing import Optional, Union
 
 import tiktoken
 from fastapi import APIRouter, Body
-from openai import APIError
-from pydantic import BaseModel, model_validator
+from openai import NOT_GIVEN, APIError
+from openai.types.shared_params.response_format_json_schema import JSONSchema
+from pydantic import BaseModel, computed_field, model_validator
 from tqdm.asyncio import tqdm
 
 from src.retrieve_text import chatbot_openai
-from src.schema import ServiceProvider
+from src.schema import ResponseFormat, ServiceProvider
 
 router = APIRouter(tags=["基础文本"])
 
@@ -37,6 +38,8 @@ lock = Lock(100)
 
 
 class BaseCompletionReq(BaseModel):
+    model_config = {"arbitrary_types_allowed": True, "extra": "allow"}
+
     model: str = Body(description="模型名称, 可用模型取决于选择的服务商")
     service: ServiceProvider = Body(default="openai", description="LLM服务供应商")
     api_key: str = Body(
@@ -46,6 +49,23 @@ class BaseCompletionReq(BaseModel):
         description="OpenAI API Key",
     )
     temperature: float = Body(0, description="温度参数，默认为0", ge=0, le=1)
+    seed: Optional[int] = Body(default=None, description="随机种子，仅支持openai")
+    json_mode: Union[bool, JSONSchema] = Body(
+        None,
+        description="True表示启用json模式，或者传入json_schema指定响应的json的格式, 仅支持openai。"
+        "文档：https://platform.openai.com/docs/api-reference/chat/create",
+    )
+
+    @computed_field
+    @property
+    def response_format(self) -> ResponseFormat:
+        if self.service != "openai":
+            return NOT_GIVEN
+        if not self.json_mode:
+            return NOT_GIVEN
+        if self.json_mode is True:
+            return {"type": "json_object"}
+        return {"type": "json_schema", "json_schema": self.json_mode}
 
     @model_validator(mode="after")
     def compatible_client(self):
@@ -53,6 +73,11 @@ class BaseCompletionReq(BaseModel):
             self.service = "openai"
         if self.service == "minimax" and self.temperature == 0:
             self.temperature = 1e-5
+
+        if self.__pydantic_extra__:  # 移除alias
+            for field in self.model_fields.values():
+                if field.alias:
+                    self.__pydantic_extra__.pop(field.alias, None)
         return self
 
 
@@ -70,7 +95,10 @@ class CompletionWithImgReq(CompletionReq):
     pic: Optional[str] = Body(default=None, description="图片链接或base64编码字符串")
 
 
-@router.post("/gpt_openai", description="基础问答功能，可以输入图片")
+@router.post(
+    "/gpt_openai",
+    description="基础问答功能，可以输入图片。除了scheme中的参数外，其他请求参数也会转发给对应的服务。",
+)
 async def gpt_openai(body: CompletionWithImgReq):
     data = body.model_dump() | {"status": "ok"}
     data["reply"], data["usage"] = await chatbot_openai(
@@ -80,6 +108,9 @@ async def gpt_openai(body: CompletionWithImgReq):
         system=body.system,
         pic=body.pic,
         temperature=body.temperature,
+        seed=body.seed,
+        response_format=body.response_format,
+        **body.__pydantic_extra__ or {},
     )
     return data
 
@@ -98,7 +129,14 @@ async def gpt_openai_fast(body: BatchCompletionReq):
         try:
             async with lock:
                 return "ok", await chatbot_openai(
-                    prompt, model=body.model, service=body.service, system=body.system
+                    prompt,
+                    model=body.model,
+                    service=body.service,
+                    system=body.system,
+                    temperature=body.temperature,
+                    seed=body.seed,
+                    response_format=body.response_format,
+                    **body.__pydantic_extra__ or {},
                 )
         except APIError as e:
             logger.error(f"Batch completion error: {e}")
