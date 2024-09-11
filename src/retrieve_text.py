@@ -1,8 +1,10 @@
 from typing import Optional, Union
 
+from openai import NOT_GIVEN
+
 from src.clients import CLIENTS
-from src.schema import ServiceProvider
-from src.utils import log_completion_duration
+from src.schema import ResponseFormat, ServiceProvider
+from src.utils import log_completion_info
 
 
 async def chatbot_gpt4(text):
@@ -27,13 +29,17 @@ async def chatbot_gpt4_turbo(text):
     return contents
 
 
-@log_completion_duration
+@log_completion_info("text", "model", "service", "system")
 async def chatbot_openai(
     text: str,
     model: str,
     service: ServiceProvider,
+    system: str = "",
     pic: Optional[str] = None,
-    temperature: float = 1,
+    temperature: Optional[float] = None,
+    seed: Optional[int] = None,
+    response_format: ResponseFormat = NOT_GIVEN,
+    **extra_params,
 ):
     client = CLIENTS[service]
     content = text
@@ -44,10 +50,18 @@ async def chatbot_openai(
             {"type": "text", "text": text},
             {"type": "image_url", "image_url": {"url": pic}},
         ]
-    messages = [{"role": "user", "content": content}]
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": content})
 
     response = await client.chat.completions.create(
-        model=model, messages=messages, temperature=temperature  # type: ignore
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        seed=seed,
+        response_format=response_format,
+        **extra_params,
     )
     contents = response.choices[0].message.content
     assert contents, response

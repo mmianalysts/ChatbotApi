@@ -73,7 +73,7 @@ app.mount("/static", StaticFiles(directory=doc_dir / "static"), name="static")
 @app.exception_handler(Exception)
 async def exception_handler(request: Request, exc: Exception):
     return JSONResponse(
-        status_code=500,
+        status_code=getattr(exc, "status_code", 500),
         content={"reply": "", "status": "error", "error": str(exc)},
     )
 
