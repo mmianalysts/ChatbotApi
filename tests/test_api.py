@@ -33,7 +33,30 @@ class FakeEmbedding:
 @patch.object(AsyncCompletions, "create", new_callable=AsyncMock, return_value=FakeCompletion)
 @patch.object(AsyncClaude, "create", new_callable=AsyncMock, return_value=FakeCompletion)
 class TestChatBot(unittest.TestCase):
-    def test_json_mode(self, _mock_claude_create, mock_openai_create: AsyncMock):
+    def test_message_param(self, _, mock_openai_create: AsyncMock):
+        messages = [
+            {"role": "system", "content": "You are a chatbot"},
+            {"role": "user", "content": "How are you"},
+        ]
+        resp = client.post(
+            "/gpt_openai",
+            json=base_data
+            | {
+                "model": "gpt-3.5-turbo",
+                "messages": messages,
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["reply"], FakeCompletion.Choice.message.content)
+        mock_openai_create.assert_called_with(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=0,
+            seed=None,
+            response_format=NOT_GIVEN,
+        )
+
+    def test_json_mode(self, _, mock_openai_create: AsyncMock):
         api = "/gpt_openai"
         param = {
             "text": "将一下内容转为json：\nname: John, age: 18",
@@ -73,7 +96,7 @@ class TestChatBot(unittest.TestCase):
 
         FakeCompletion.Choice.message.content = prev_content
 
-    def test_service(self, _mock_claude_create, _mock_openai_create):
+    def test_service(self, _, __):
         api = "/gpt_openai"
         for model, service in (
             ("gpt-3.5-turbo", "openai"),

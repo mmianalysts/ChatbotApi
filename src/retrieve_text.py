@@ -1,6 +1,7 @@
 from typing import Optional, Union
 
 from openai import NOT_GIVEN
+from openai.types.chat import ChatCompletionMessageParam
 
 from src.clients import CLIENTS
 from src.schema import ResponseFormat, ServiceProvider
@@ -29,33 +30,17 @@ async def chatbot_gpt4_turbo(text):
     return contents
 
 
-@log_completion_info("text", "model", "service", "system")
+@log_completion_info("messages", "model", "service")
 async def chatbot_openai(
-    text: str,
+    messages: list[ChatCompletionMessageParam],
     model: str,
     service: ServiceProvider,
-    system: str = "",
-    pic: Optional[str] = None,
     temperature: Optional[float] = None,
     seed: Optional[int] = None,
     response_format: ResponseFormat = NOT_GIVEN,
     **extra_params,
 ):
-    client = CLIENTS[service]
-    content = text
-    if pic:
-        if not pic.startswith("http"):
-            pic = "data:image/jpeg;base64," + pic
-        content = [
-            {"type": "text", "text": text},
-            {"type": "image_url", "image_url": {"url": pic}},
-        ]
-    messages = []
-    if system:
-        messages.append({"role": "system", "content": system})
-    messages.append({"role": "user", "content": content})
-
-    response = await client.chat.completions.create(
+    response = await CLIENTS[service].chat.completions.create(
         model=model,
         messages=messages,
         temperature=temperature,
@@ -110,10 +95,3 @@ async def azure(text):
         stop=None,
     )
     return response.choices[0].message.content
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    a = asyncio.run(chatbot_openai("1+1", "gpt-3.5-turbo", "openai"))
-    print(a)

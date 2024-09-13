@@ -1,4 +1,5 @@
 import logging
+import re
 from asyncio.locks import Semaphore
 from typing import Optional, Union
 
@@ -6,7 +7,7 @@ import tiktoken
 from fastapi import APIRouter, Body
 from openai import NOT_GIVEN, APIError
 from openai.types.shared_params.response_format_json_schema import JSONSchema
-from pydantic import BaseModel, computed_field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from tqdm.asyncio import tqdm
 
 from src.retrieve_text import chatbot_openai
@@ -56,7 +57,6 @@ class BaseCompletionReq(BaseModel):
         "文档：https://platform.openai.com/docs/api-reference/chat/create",
     )
 
-    @computed_field
     @property
     def response_format(self) -> ResponseFormat:
         if self.service != "openai":
@@ -84,29 +84,69 @@ class BaseCompletionReq(BaseModel):
 class CompletionReq(BaseCompletionReq):
     text: str = Body(description="输入的文本")
     system: str = Body(default="", description="系统提示词，默认为空")
+    pic: Optional[str] = Field(
+        default=None,
+        description="图片链接或base64编码后的字符串",
+        pattern=re.compile(r"https?://|[\w+\=]+$", re.ASCII),
+    )
+    messages: list[dict] = Body(
+        default_factory=list,
+        description="复杂消息或多轮对话可以使用此参数。 如果为空，会自动将text, system, pic参数解析为message列表。"
+        "如果不为空，会忽略text, system, pic参数。",
+    )
+
+    @field_validator("pic")
+    @classmethod
+    def fix_pic_url(cls, pic):
+        if not pic.startswith("http"):
+            return "data:image/jpeg;base64," + pic
+        return pic
+
+    @model_validator(mode="after")
+    def compatible_message(self):
+        if self.messages:
+            return self
+        if self.system:
+            self.messages.append({"role": "system", "content": self.system})
+        if self.text:
+            content = self.text
+            if self.pic:
+                content = [
+                    {"type": "text", "text": self.text},
+                    {"type": "image_url", "image_url": {"url": self.pic}},
+                ]
+            self.messages.append({"role": "user", "content": content})
+        return self
 
 
 class BatchCompletionReq(BaseCompletionReq):
     prompts: list[str] = Body(description="输入的文本列表")
     system: str = Body(default="", description="系统提示词，默认为空")
+    messages_list: list[list[dict]] = Body(
+        default_factory=list, description="复杂消息或多轮对话可以使用此参数。"
+    )
 
-
-class CompletionWithImgReq(CompletionReq):
-    pic: Optional[str] = Body(default=None, description="图片链接或base64编码字符串")
+    @model_validator(mode="after")
+    def compatible_message(self):
+        if self.messages_list:
+            return self
+        self.messages_list = [[{"role": "user", "content": prompt} for prompt in self.prompts]]
+        if self.system:
+            for message in self.messages_list:
+                message.insert(0, {"role": "system", "content": self.system})
+        return self
 
 
 @router.post(
     "/gpt_openai",
     description="基础问答功能，可以输入图片。除了scheme中的参数外，其他请求参数也会转发给对应的服务。",
 )
-async def gpt_openai(body: CompletionWithImgReq):
+async def gpt_openai(body: CompletionReq):
     data = body.model_dump() | {"status": "ok"}
     data["reply"], data["usage"] = await chatbot_openai(
-        body.text,
+        body.messages,  # type: ignore
         body.model,
         body.service,
-        system=body.system,
-        pic=body.pic,
         temperature=body.temperature,
         seed=body.seed,
         response_format=body.response_format,
@@ -116,23 +156,22 @@ async def gpt_openai(body: CompletionWithImgReq):
 
 
 @router.post("/gpt_openai_v2", deprecated=True, description="指向'/gpt_openai', 但服务商为azure")
-async def gpt_openai_v2(body: CompletionWithImgReq):
+async def gpt_openai_v2(body: CompletionReq):
     body.service = "azure"
     return await gpt_openai(body)
 
 
 @router.post("/gpt_openai_fast", description="批量调用文本补全")
 async def gpt_openai_fast(body: BatchCompletionReq):
-    data = {}
+    data = body.model_dump()
 
-    async def get_result(prompt):
+    async def get_result(messages: list[dict]):
         try:
             async with lock:
                 return "ok", await chatbot_openai(
-                    prompt,
+                    messages,  # type: ignore
                     model=body.model,
                     service=body.service,
-                    system=body.system,
                     temperature=body.temperature,
                     seed=body.seed,
                     response_format=body.response_format,
@@ -142,8 +181,7 @@ async def gpt_openai_fast(body: BatchCompletionReq):
             logger.error(f"Batch completion error: {e}")
             return "error", e.message
 
-    results = await tqdm.gather(*[get_result(prompt) for prompt in body.prompts])
-    data["prompts"] = body.prompts
+    results = await tqdm.gather(*[get_result(messages) for messages in body.messages_list])
     data["status"] = [result[0] for result in results]
     data["reply"] = [result[1] for result in results]
     return data

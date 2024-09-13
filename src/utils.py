@@ -37,14 +37,35 @@ def log_completion_info(*record_params):
             start = time.time()
             res = await func(*args, **kwargs)
             reply, usage = res
-            duration = (time.time() - start) * 1000
-            extra = {"duration": duration, "reply": reply}
+            extra = {"duration": (time.time() - start) * 1000, "reply": reply}
             parameters = get_parameter(func)
-            extra.update(
-                {name: arg for name, arg in zip(parameters, args) if name in record_params}
-            )
-            extra.update({k: v for k, v in kwargs.items() if k in record_params[len(args) :]})
-            extra["prompt"] = extra.pop("text", "")
+
+            def _filter(x):
+                return x[0] in record_params
+
+            # 更新位置参数
+            extra.update(dict(filter(_filter, zip(parameters, args))))
+            # 更新关键字参数
+            extra.update(dict(filter(_filter, kwargs.items())))
+
+            if "messages" in extra:
+                messages = extra.pop("messages")
+                if len(messages) == 1:
+                    extra["prompt"] = messages[0]["content"]
+                else:
+                    messages_str = []
+                    for message in messages:
+                        content = message["content"]
+                        if isinstance(content, list):
+                            content = "\n".join(
+                                f"[({content['type']})]{content[content['type']]}"
+                                for content in content
+                            )
+                        elif not isinstance(content, str):
+                            content = str(content)
+
+                        messages_str.append(f"<{message['role']}>: {content}")
+                    extra["prompt"] = "\n".join(messages_str)
             extra.update(dict(usage))
             logger.info("Prompt: {prompt}\nReply: {reply}", extra=extra)
             return res
