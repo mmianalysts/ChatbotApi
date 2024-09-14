@@ -136,7 +136,6 @@ class TestChatBot(unittest.TestCase):
 
         embedding_resp = FakeEmbedding.embedding.embedding
         completion_resp = FakeCompletion.Choice.message.content
-        token_num_resp = 3
 
         for api, data, expected_resp in (
             (
@@ -149,7 +148,7 @@ class TestChatBot(unittest.TestCase):
                 },
                 completion_resp,
             ),
-            ("/get_token_num", base_data, token_num_resp),
+            ("/get_token_num", base_data, 4),
             ("/vec", base_data, embedding_resp),
             (
                 "/vec",
@@ -171,7 +170,7 @@ class TestChatBot(unittest.TestCase):
             with self.subTest(api=api):
                 response = client.post(api, json=data)
                 self.assertEqual(response.status_code, 200)
-                self.assertTrue(response.json()["reply"], expected_resp)
+                self.assertEqual(response.json()["reply"], expected_resp)
 
 
 if __name__ == "__main__":

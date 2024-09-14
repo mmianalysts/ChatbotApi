@@ -183,7 +183,8 @@ async def gpt_openai_fast(body: BatchCompletionReq):
 
     results = await tqdm.gather(*[get_result(messages) for messages in body.messages_list])
     data["status"] = [result[0] for result in results]
-    data["reply"] = [result[1] for result in results]
+    data["reply"] = [result[1][0] for result in results]
+    data["usage"] = [result[1][1] for result in results]
     return data
 
 
