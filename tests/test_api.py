@@ -160,11 +160,11 @@ class TestChatBot(unittest.TestCase):
             (
                 "/gpt_openai_fast",
                 {
-                    "prompts": [base_data["text"]],
+                    "prompts": [base_data["text"], base_data["text"]],
                     "model": "claude-3-haiku-20240307",
                     "service": "claude",
                 },
-                [completion_resp],
+                [completion_resp, completion_resp],
             ),
         ):
             with self.subTest(api=api):

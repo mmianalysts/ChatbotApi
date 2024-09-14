@@ -130,7 +130,7 @@ class BatchCompletionReq(BaseCompletionReq):
     def compatible_message(self):
         if self.messages_list:
             return self
-        self.messages_list = [[{"role": "user", "content": prompt} for prompt in self.prompts]]
+        self.messages_list = [[{"role": "user", "content": prompt}] for prompt in self.prompts]
         if self.system:
             for message in self.messages_list:
                 message.insert(0, {"role": "system", "content": self.system})
