@@ -102,6 +102,7 @@ class TestChatBot(unittest.TestCase):
             ("gpt-3.5-turbo", "openai"),
             ("gpt35-turbo-16k", "azure"),
             ("deepseek-chat", "dpsk"),
+            ("deepseek-chat", "deepseek"),
             ("ep-20240604102539-lz8dk", "doubao"),
             ("claude-3-haiku-20240307", "claude"),
             ("abab6.5s-chat", "minimax"),

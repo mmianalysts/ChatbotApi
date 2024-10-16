@@ -50,6 +50,7 @@ class BaseCompletionReq(BaseModel):
         description="OpenAI API Key",
     )
     temperature: float = Body(0, description="温度参数，默认为0", ge=0, le=1)
+    user: str = Body(default="", description="用户名称")
     seed: Optional[int] = Body(default=None, description="随机种子，仅支持openai")
     json_mode: Union[bool, JSONSchema] = Body(
         None,
