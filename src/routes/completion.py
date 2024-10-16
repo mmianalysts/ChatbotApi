@@ -73,6 +73,10 @@ class BaseCompletionReq(BaseModel):
             self.service = "openai"
         if self.service == "minimax" and self.temperature == 0:
             self.temperature = 1e-5
+        # o1-模型预览版本温度参数只能设置为1
+        # https://platform.openai.com/docs/guides/reasoning/beta-limitations
+        if self.service == "openai" and self.model.startswith("o1-"):
+            self.temperature = 1
 
         if self.__pydantic_extra__:  # 移除alias
             for field in self.model_fields.values():

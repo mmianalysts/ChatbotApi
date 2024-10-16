@@ -56,6 +56,24 @@ class TestChatBot(unittest.TestCase):
             response_format=NOT_GIVEN,
         )
 
+    def test_temperature_seed(self, _, mock_openai_create: AsyncMock):
+        param = {
+            "text": "How are you?",
+            "model": "o1-preview",
+            "temperature": 0.5,
+            "seed": 123,
+        }
+        response = client.post("/gpt_openai", json=param)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["reply"], FakeCompletion.Choice.message.content)
+        mock_openai_create.assert_called_with(
+            model=param["model"],
+            messages=[{"role": "user", "content": param["text"]}],
+            temperature=1,
+            seed=123,
+            response_format=NOT_GIVEN,
+        )
+
     def test_json_mode(self, _, mock_openai_create: AsyncMock):
         api = "/gpt_openai"
         param = {
