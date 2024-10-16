@@ -44,6 +44,7 @@ CLIENTS: dict[ServiceProvider, AsyncOpenAI] = {
     "openai": OPENAI_CLIENT,
     "azure": AZURE_CLIENT,
     "dpsk": DPSK_CLIENT,
+    "deepseek": DPSK_CLIENT,
     "doubao": DOUBAO_CLIENT,
     "claude": CLAUDE_CLIENT,
     "minimax": MINIMAX_CLIENT,
