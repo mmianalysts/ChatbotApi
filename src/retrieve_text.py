@@ -30,7 +30,7 @@ async def chatbot_gpt4_turbo(text):
     return contents
 
 
-@log_completion_info("messages", "model", "service")
+@log_completion_info("messages", "model", "service", "info")
 async def chatbot_openai(
     messages: list[ChatCompletionMessageParam],
     model: str,
@@ -40,6 +40,7 @@ async def chatbot_openai(
     response_format: ResponseFormat = NOT_GIVEN,
     **extra_params,
 ):
+    extra_params.pop("info", None)  # 'info'不需要传递给create函数，仅用作日志记录
     response = await CLIENTS[service].chat.completions.create(
         model=model,
         messages=messages,

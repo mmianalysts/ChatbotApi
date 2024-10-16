@@ -50,7 +50,7 @@ class BaseCompletionReq(BaseModel):
         description="OpenAI API Key",
     )
     temperature: float = Body(0, description="温度参数，默认为0", ge=0, le=1)
-    user: str = Body(default="", description="用户名称")
+    info: dict = Body(default_factory=dict, description="需要记录到日志中的一些元数据")
     seed: Optional[int] = Body(default=None, description="随机种子，仅支持openai")
     json_mode: Union[bool, JSONSchema] = Body(
         None,
@@ -155,6 +155,7 @@ async def gpt_openai(body: CompletionReq):
         temperature=body.temperature,
         seed=body.seed,
         response_format=body.response_format,
+        info=body.info,
         **body.__pydantic_extra__ or {},
     )
     return data
@@ -180,6 +181,7 @@ async def gpt_openai_fast(body: BatchCompletionReq):
                     temperature=body.temperature,
                     seed=body.seed,
                     response_format=body.response_format,
+                    info=body.info,
                     **body.__pydantic_extra__ or {},
                 )
         except APIError as e:

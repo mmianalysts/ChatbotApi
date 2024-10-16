@@ -47,7 +47,7 @@ def log_completion_info(*record_params):
             extra.update(dict(filter(_filter, zip(parameters, args))))
             # 更新关键字参数
             extra.update(dict(filter(_filter, kwargs.items())))
-
+            log_message = "Reply: {reply}"
             if "messages" in extra:
                 messages = extra.pop("messages")
                 if len(messages) == 1:
@@ -66,8 +66,9 @@ def log_completion_info(*record_params):
 
                         messages_str.append(f"<{message['role']}>: {content}")
                     extra["prompt"] = "\n".join(messages_str)
+                log_message = "Prompt: {prompt}\n" + log_message
             extra.update(dict(usage))
-            logger.info("Prompt: {prompt}\nReply: {reply}", extra=extra)
+            logger.info(log_message, extra=extra)
             return res
 
         return wrapper
