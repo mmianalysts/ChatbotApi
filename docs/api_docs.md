@@ -9,9 +9,7 @@
 - [Claude可用模型](https://docs.anthropic.com/en/docs/about-claude/models)
 - [MiniMax可用模型](https://platform.minimaxi.com/document/ChatCompletion%20Pro)
 - 豆包常用模型
-  - doubao_pro_4k: ep-20240604102539-lz8dk
-  - doubao_pro_32k: ep-20240604102016-f72tf
-  - doubao_pro_128k: ep-20240604102059-nsbpw
+  - doubao_pro_32k: ep-20241108150909-5rbvg
   [定价文档](https://www.volcengine.com/docs/82379/1099320)
 - azure可用模型
   ![azure模型](/static/azure-model-list.jpg)
